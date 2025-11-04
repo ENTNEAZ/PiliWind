@@ -20,7 +20,16 @@ class Owner implements BaseOwner {
   String? face;
 
   Owner.fromJson(Map<String, dynamic> json) {
-    mid = json["mid"];
+    final dynamic midValue = json["mid"];
+    if (midValue is int) {
+      mid = midValue;
+    } else if (midValue is String) {
+      mid = int.tryParse(midValue);
+    } else if (midValue is num) {
+      mid = midValue.toInt();
+    } else {
+      mid = null;
+    }
     name = json["name"];
     face = json['face'];
   }

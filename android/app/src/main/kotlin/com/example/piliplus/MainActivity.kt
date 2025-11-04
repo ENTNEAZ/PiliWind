@@ -1,4 +1,4 @@
-package com.example.piliplus
+package com.example.piliwind
 
 import android.app.PictureInPictureParams
 import android.app.SearchManager
@@ -23,7 +23,7 @@ class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "PiliPlus")
+        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "PiliWind")
         methodChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "back" -> back();

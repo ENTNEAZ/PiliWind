@@ -27,7 +27,14 @@ class BaseOfficialVerify {
   String? desc;
 
   BaseOfficialVerify.fromJson(Map<String, dynamic> json) {
-    type = json['type'];
+    final dynamic typeValue = json['type'];
+    if (typeValue is int) {
+      type = typeValue;
+    } else if (typeValue is String) {
+      type = int.tryParse(typeValue);
+    } else if (typeValue is num) {
+      type = typeValue.toInt();
+    }
     desc = json['desc'];
   }
 }
@@ -38,8 +45,24 @@ class Vip {
   Label? label;
 
   Vip.fromJson(Map<String, dynamic> json) {
-    type = json['type'] ?? json['vipType'];
-    status = json['status'] ?? json['vipStatus'] ?? 0;
+    final dynamic typeValue = json['type'] ?? json['vipType'];
+    if (typeValue is int) {
+      type = typeValue;
+    } else if (typeValue is String) {
+      type = int.tryParse(typeValue);
+    } else if (typeValue is num) {
+      type = typeValue.toInt();
+    }
+    final dynamic statusValue = json['status'] ?? json['vipStatus'] ?? 0;
+    if (statusValue is int) {
+      status = statusValue;
+    } else if (statusValue is String) {
+      status = int.tryParse(statusValue) ?? 0;
+    } else if (statusValue is num) {
+      status = statusValue.toInt();
+    } else {
+      status = 0;
+    }
     if (json['label'] != null) label = Label.fromJson(json['label']);
   }
 }
