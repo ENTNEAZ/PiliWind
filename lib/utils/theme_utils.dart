@@ -20,10 +20,14 @@ abstract class ThemeUtils {
     final fontWeight = appFontWeight == -1
         ? null
         : FontWeight.values[appFontWeight];
-    late final textStyle = TextStyle(fontWeight: fontWeight);
+    late final textStyle = TextStyle(
+      fontWeight: fontWeight,
+      fontFamily: 'MiSans',
+    );
     ThemeData themeData = ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
+      fontFamily: 'MiSans',
       textTheme: fontWeight == null
           ? null
           : TextTheme(
@@ -56,6 +60,7 @@ abstract class ThemeUtils {
           fontSize: 16,
           color: colorScheme.onSurface,
           fontWeight: fontWeight,
+          fontFamily: 'MiSans',
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
