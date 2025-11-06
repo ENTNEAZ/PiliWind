@@ -1,7 +1,7 @@
 import UIKit
 import Flutter
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
 
   // 当前 App 允许的方向集合；默认维持你项目的“竖屏优先”
