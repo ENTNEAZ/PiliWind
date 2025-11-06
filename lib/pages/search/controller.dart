@@ -11,6 +11,7 @@ import 'package:PiliWind/utils/id_utils.dart';
 import 'package:PiliWind/utils/storage.dart';
 import 'package:PiliWind/utils/storage_pref.dart';
 import 'package:PiliWind/utils/utils.dart';
+import 'package:PiliWind/utils/app_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -168,6 +169,18 @@ class SSearchController extends GetxController
       }
       controller.text = hintText!;
       validateUid();
+    }
+
+    // handle bilibili links or BV/AV ids directly
+    final input = controller.text.trim();
+    try {
+      final handled = await PiliScheme.routePushFromUrl(input, selfHandle: true);
+      if (handled) return;
+    } catch (_) {}
+    final matchRes = IdUtils.matchAvorBv(input: input);
+    if (matchRes.isNotEmpty) {
+      await PiliScheme.videoPush(matchRes.av, matchRes.bv);
+      return;
     }
 
     if (recordSearchHistory.value) {

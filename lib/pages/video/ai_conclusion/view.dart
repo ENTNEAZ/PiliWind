@@ -58,7 +58,9 @@ class AiConclusionPanel extends CommonSlidePage {
             padding: EdgeInsets.only(
               left: 14,
               right: 14,
-              bottom: !tap ? 0 : MediaQuery.viewPaddingOf(context).bottom + 100,
+              bottom: !tap ? 0 : MediaQuery
+                  .viewPaddingOf(context)
+                  .bottom + 100,
             ),
             sliver: SliverList.builder(
               itemCount: res.outline!.length,
@@ -79,48 +81,52 @@ class AiConclusionPanel extends CommonSlidePage {
                       ),
                       const SizedBox(height: 6),
                       ...?item.partOutline?.map(
-                        (item) => Wrap(
-                          children: [
-                            Text.rich(
-                              TextSpan(
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: theme.colorScheme.onSurface,
-                                  height: 1.5,
-                                ),
-                                children: [
+                            (item) =>
+                            Wrap(
+                              children: [
+                                Text.rich(
                                   TextSpan(
-                                    text: DurationUtils.formatDuration(
-                                      item.timestamp,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: theme.colorScheme.onSurface,
+                                      height: 1.5,
                                     ),
-                                    style: tap
-                                        ? TextStyle(
-                                            color: theme.colorScheme.primary,
-                                          )
-                                        : null,
-                                    recognizer: tap
-                                        ? (TapGestureRecognizer()
-                                            ..onTap = () {
-                                              try {
-                                                Get.find<VideoDetailController>(
-                                                  tag: Get.arguments['heroTag'],
-                                                ).plPlayerController.seekTo(
-                                                  Duration(
-                                                    seconds: item.timestamp!,
-                                                  ),
-                                                  isSeek: false,
-                                                );
-                                              } catch (_) {}
-                                            })
-                                        : null,
+                                    children: [
+                                      TextSpan(
+                                        text: DurationUtils.formatDuration(
+                                          item.timestamp,
+                                        ),
+                                        style: tap
+                                            ? TextStyle(
+                                          color: theme.colorScheme.primary,
+                                        )
+                                            : null,
+                                        recognizer: tap
+                                            ? (TapGestureRecognizer()
+                                          ..onTap = () {
+                                            try {
+                                              Get
+                                                  .find<VideoDetailController>(
+                                                tag: Get.arguments['heroTag'],
+                                              )
+                                                  .plPlayerController
+                                                  .seekTo(
+                                                Duration(
+                                                  seconds: item.timestamp!,
+                                                ),
+                                                isSeek: false,
+                                              );
+                                            } catch (_) {}
+                                          })
+                                            : null,
+                                      ),
+                                      const TextSpan(text: ' '),
+                                      TextSpan(text: item.content!),
+                                    ],
                                   ),
-                                  const TextSpan(text: ' '),
-                                  TextSpan(text: item.content!),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
