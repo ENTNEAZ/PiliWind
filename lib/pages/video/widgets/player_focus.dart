@@ -12,6 +12,7 @@ import 'package:flutter/services.dart'
     show KeyDownEvent, KeyUpEvent, LogicalKeyboardKey, HardwareKeyboard;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:PiliWind/utils/orientation_lock.dart';
 
 class PlayerFocus extends StatelessWidget {
   const PlayerFocus({
@@ -158,12 +159,25 @@ class PlayerFocus extends StatelessWidget {
           return true;
 
         case LogicalKeyboardKey.keyF:
+          // 目标状态：当前取反
+          final targetFullscreen = !isFullScreen;
+
+          // 先根据目标状态下达“原生层”方向锁，避免 iOS 解锁后先竖一下的抖动
+          if (targetFullscreen) {
+          // 进入全屏 → 硬锁横屏
+            OrientationLock.lockLandscape();
+          } else {
+            // 退出全屏 → 恢复竖屏优先
+            OrientationLock.unlockPortraitFirst();
+          }
+
+          // 再触发原有的全屏逻辑
           plPlayerController
-            ..triggerFullScreen(
-              status: !isFullScreen,
-              inAppFullScreen: HardwareKeyboard.instance.isShiftPressed,
-            )
-            ..controlsLock.value = false;
+              ..triggerFullScreen(
+            status: targetFullscreen,
+            inAppFullScreen: HardwareKeyboard.instance.isShiftPressed,
+          )
+          ..controlsLock.value = false;
           return true;
 
         case LogicalKeyboardKey.keyD:
