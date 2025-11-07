@@ -17,7 +17,7 @@ import Flutter
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-
+    GeneratedPluginRegistrant.register(with: self)
     NSLog("[PW] didFinishLaunching begin")
 
     // 安全获取 FlutterViewController（避免 as! 直接崩）
