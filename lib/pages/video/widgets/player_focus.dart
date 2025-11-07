@@ -158,9 +158,11 @@ class PlayerFocus extends StatelessWidget {
           return true;
 
         case LogicalKeyboardKey.keyF:
+          // 目标状态：当前取反
+          final targetFullscreen = !isFullScreen;
           plPlayerController
             ..triggerFullScreen(
-              status: !isFullScreen,
+              status: targetFullscreen,
               inAppFullScreen: HardwareKeyboard.instance.isShiftPressed,
             )
             ..controlsLock.value = false;
