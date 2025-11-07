@@ -1,7 +1,7 @@
 import UIKit
 import Flutter
 
-@main
+@UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
 
   static var orientationLock: UIInterfaceOrientationMask = .allButUpsideDown
@@ -18,9 +18,9 @@ import Flutter
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
-    NSLog("[PW] didFinishLaunching begin")  // ← 路标1
+    NSLog("[PW] didFinishLaunching begin")
 
-    // ✅ 安全拿 FlutterViewController（避免 as! 直接崩）
+    // 安全获取 FlutterViewController（避免 as! 直接崩）
     let root = window?.rootViewController
     let flutterVC =
       root as? FlutterViewController ??
@@ -28,9 +28,9 @@ import Flutter
       root?.children.first as? FlutterViewController
 
     if flutterVC == nil {
-      NSLog("[PW] FlutterViewController not found in root VC hierarchy") // ← 路标2（若找不到会打印）
+      NSLog("[PW] FlutterViewController NOT found in root hierarchy")
     } else {
-      NSLog("[PW] FlutterViewController found, setting up method channel") // ← 路标2
+      NSLog("[PW] FlutterViewController found; setting up MethodChannel")
     }
 
     guard let controller = flutterVC else {
@@ -44,15 +44,18 @@ import Flutter
 
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self = self else { return }
-      NSLog("[PW] MethodChannel call: \(call.method)") // ← 路标3：收到 Dart 调用
+      NSLog("[PW] MethodChannel call: \(call.method)")
+
       switch call.method {
       case "lockLandscape":
         AppDelegate.orientationLock = .landscape
         if #available(iOS 16.0, *) {
-          self.window?.windowScene?.requestGeometryUpdate(
-            .iOS(interfaceOrientations: AppDelegate.orientationLock)
-          ) { err in
-            if let err = err { NSLog("[PW] requestGeometryUpdate error: \(err)") }
+          if let scene = self.window?.windowScene {
+            scene.requestGeometryUpdate(
+              .iOS(interfaceOrientations: AppDelegate.orientationLock)
+            ) { error in
+              NSLog("[PW] requestGeometryUpdate error: \(error.localizedDescription)")
+            }
           }
         }
         UIViewController.attemptRotationToDeviceOrientation()
@@ -61,10 +64,12 @@ import Flutter
       case "unlockPortraitFirst":
         AppDelegate.orientationLock = .allButUpsideDown
         if #available(iOS 16.0, *) {
-          self.window?.windowScene?.requestGeometryUpdate(
-            .iOS(interfaceOrientations: AppDelegate.orientationLock)
-          ) { err in
-            if let err = err { NSLog("[PW] requestGeometryUpdate error: \(err)") }
+          if let scene = self.window?.windowScene {
+            scene.requestGeometryUpdate(
+              .iOS(interfaceOrientations: AppDelegate.orientationLock)
+            ) { error in
+              NSLog("[PW] requestGeometryUpdate error: \(error.localizedDescription)")
+            }
           }
         }
         UIViewController.attemptRotationToDeviceOrientation()
@@ -75,8 +80,7 @@ import Flutter
       }
     }
 
-    NSLog("[PW] didFinishLaunching end") // ← 路标4
-
+    NSLog("[PW] didFinishLaunching end")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
