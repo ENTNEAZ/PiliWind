@@ -215,3 +215,183 @@ void main() {
     print('[PW][UNCAUGHT] $error\n$stack');
   });
 }
+
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  static ThemeData? darkThemeData;
+
+  @override
+  Widget build(BuildContext context) {
+    Color brandColor = colorThemeTypes[Pref.customColor].color;
+    bool isDynamicColor = Pref.dynamicColor;
+    FlexSchemeVariant variant = FlexSchemeVariant.values[Pref.schemeVariant];
+
+    // 强制设置高帧率
+    if (Platform.isAndroid) {
+      late List<DisplayMode> modes;
+      FlutterDisplayMode.supported.then((value) {
+        modes = value;
+        final String? storageDisplay = GStorage.setting.get(
+          SettingBoxKey.displayMode,
+        );
+        DisplayMode? displayMode;
+        if (storageDisplay != null) {
+          displayMode = modes.firstWhereOrNull(
+            (e) => e.toString() == storageDisplay,
+          );
+        }
+        displayMode ??= DisplayMode.auto;
+        FlutterDisplayMode.setPreferredMode(displayMode);
+      });
+    }
+
+    return DynamicColorBuilder(
+      builder: ((ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        ColorScheme? lightColorScheme;
+        ColorScheme? darkColorScheme;
+        if (lightDynamic != null && darkDynamic != null && isDynamicColor) {
+          // dynamic取色成功
+          lightColorScheme = lightDynamic.harmonized();
+          darkColorScheme = darkDynamic.harmonized();
+        } else {
+          // dynamic取色失败，采用品牌色
+          lightColorScheme = SeedColorScheme.fromSeeds(
+            primaryKey: brandColor,
+            brightness: Brightness.light,
+            variant: variant,
+            // dynamicSchemeVariant: dynamicSchemeVariant,
+            // tones: FlexTones.soft(Brightness.light),
+          );
+          darkColorScheme = SeedColorScheme.fromSeeds(
+            primaryKey: brandColor,
+            brightness: Brightness.dark,
+            variant: variant,
+            // dynamicSchemeVariant: dynamicSchemeVariant,
+            // tones: FlexTones.soft(Brightness.dark),
+          );
+        }
+
+        // 图片缓存
+        // PaintingBinding.instance.imageCache.maximumSizeBytes = 1000 << 20;
+        return GetMaterialApp(
+          title: Constants.appName,
+          theme: ThemeUtils.getThemeData(
+            colorScheme: lightColorScheme,
+            isDynamic: lightDynamic != null && isDynamicColor,
+            variant: variant,
+          ),
+          darkTheme: ThemeUtils.getThemeData(
+            colorScheme: darkColorScheme,
+            isDynamic: darkDynamic != null && isDynamicColor,
+            isDark: true,
+            variant: variant,
+          ),
+          themeMode: Pref.themeMode,
+          localizationsDelegates: const [
+            GlobalCupertinoLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          locale: const Locale("zh", "CN"),
+          supportedLocales: const [Locale("zh", "CN"), Locale("en", "US")],
+          fallbackLocale: const Locale("zh", "CN"),
+          getPages: Routes.getPages,
+          initialRoute: '/',
+          builder: FlutterSmartDialog.init(
+            toastBuilder: (String msg) => CustomToast(msg: msg),
+            loadingBuilder: (msg) => LoadingWidget(msg: msg),
+            builder: (context, child) {
+              child = MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(Pref.defaultTextScale),
+                ),
+                child: child!,
+              );
+              if (Utils.isDesktop) {
+                void onBack() {
+                  if (SmartDialog.checkExist()) {
+                    SmartDialog.dismiss();
+                    return;
+                  }
+
+                  if (Get.isDialogOpen ?? Get.isBottomSheetOpen ?? false) {
+                    Get.back();
+                    return;
+                  }
+
+                  final plCtr = PlPlayerController.instance;
+                  if (plCtr != null) {
+                    if (plCtr.isFullScreen.value) {
+                      plCtr
+                        ..triggerFullScreen(status: false)
+                        ..controlsLock.value = false;
+                      return;
+                    }
+
+                    if (plCtr.isDesktopPip) {
+                      plCtr.exitDesktopPip().whenComplete(
+                        () => plCtr.initialFocalPoint = Offset.zero,
+                      );
+                      return;
+                    }
+                  }
+
+                  Get.back();
+                }
+
+                return Focus(
+                  canRequestFocus: false,
+                  onKeyEvent: (_, event) {
+                    if (event.logicalKey == LogicalKeyboardKey.escape &&
+                        event is KeyDownEvent) {
+                      onBack();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: MouseBackDetector(
+                    onTapDown: onBack,
+                    child: child,
+                  ),
+                );
+              }
+              return child;
+            },
+          ),
+          navigatorObservers: [
+            FlutterSmartDialog.observer,
+            PageUtils.routeObserver,
+          ],
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            scrollbars: false,
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.stylus,
+              PointerDeviceKind.invertedStylus,
+              PointerDeviceKind.trackpad,
+              PointerDeviceKind.unknown,
+              if (Utils.isDesktop) PointerDeviceKind.mouse,
+            },
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _CustomHttpOverrides extends HttpOverrides {
+  final badCertificateCallback = kDebugMode || Pref.badCertificateCallback;
+
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context)
+      // ..maxConnectionsPerHost = 32
+      ..idleTimeout = const Duration(seconds: 15);
+    if (badCertificateCallback) {
+      client.badCertificateCallback = (cert, host, port) => true;
+    }
+    return client;
+  }
+}
